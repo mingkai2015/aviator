@@ -1,0 +1,25 @@
+# Aviator Spring Boot Starter 配置示例
+
+aviator:
+  # 是否启用 Aviator 自动配置（必须设置为 true）
+  enable: true
+  
+  # 是否开启表达式编译缓存
+  cache-enabled: true
+  
+  # 表达式编译缓存大小
+  cache-size: 1000
+  
+  # 是否优化表达式执行
+  optimize-enabled: true
+  
+  # 是否允许追踪求值过程（用于调试）
+  trace-enabled: false
+
+# 日志配置（可选）
+logging:
+  level:
+    com.github.aviator: INFO
+    # 开启 DEBUG 可以看到更详细的日志
+    # com.github.aviator: DEBUG
+

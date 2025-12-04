@@ -1,0 +1,24 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: aviator-demo
+
+# Aviator 配置
+aviator:
+  enable: true              # 是否启用（必需）
+  cache-enabled: true       # 是否开启缓存
+  cache-size: 1000         # 缓存大小
+  optimize-enabled: true    # 是否优化
+  trace-enabled: false      # 是否追踪调试
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.example.demo: DEBUG
+    com.github.aviator: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
