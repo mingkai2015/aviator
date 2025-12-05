@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  aviator-demo:
+    image: aviator-demo:latest
+    container_name: aviator-demo
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - JAVA_OPTS=-Xms256m -Xmx512m
+      - TZ=Asia/Shanghai
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - aviator-network
+
+networks:
+  aviator-network:
+    driver: bridge
+

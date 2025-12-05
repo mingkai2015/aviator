@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '2.7.18'
     id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+    id 'com.google.cloud.tools.jib' version '3.4.0'
 }
 
 group = 'com.example'
@@ -41,5 +42,30 @@ tasks.withType(JavaCompile) {
 
 test {
     useJUnitPlatform()
+}
+
+// Jib Docker 配置（无需 Docker daemon）
+jib {
+    from {
+        image = 'eclipse-temurin:8-jre'  // Java 8 运行时基础镜像
+    }
+    to {
+        image = 'aviator-demo'
+        tags = ['latest', "${version}"]
+    }
+    container {
+        jvmFlags = ['-Xms256m', '-Xmx512m', '-Djava.security.egd=file:/dev/./urandom']
+        ports = ['8080']
+        labels = [
+            'maintainer': 'aviator-demo',
+            'version': "${version}"
+        ]
+        creationTime = 'USE_CURRENT_TIMESTAMP'
+        
+        // 可选：设置环境变量
+        environment = [
+            SPRING_OUTPUT_ANSI_ENABLED: 'ALWAYS'
+        ]
+    }
 }
 

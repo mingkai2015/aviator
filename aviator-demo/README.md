@@ -4,14 +4,9 @@
 
 ## 🚀 快速开始
 
-### 1. 构建并运行
+### 方式一：本地运行
 
 ```bash
-cd /Users/mac/workspace/projects/aviator-demo
-
-# 如果没有 gradlew，先初始化
-gradle wrapper --gradle-version 7.6
-
 # 构建项目
 ./gradlew clean build
 
@@ -21,7 +16,22 @@ gradle wrapper --gradle-version 7.6
 
 应用启动后，访问：http://localhost:8080
 
-### 2. 测试 API
+### 方式二：Docker 运行（推荐）
+
+```bash
+# 1. 构建 Docker 镜像（使用 Jib，无需 Docker daemon）
+./gradlew jibDockerBuild
+
+# 2. 运行容器
+docker run -d -p 8080:8080 --name aviator-demo aviator-demo:latest
+
+# 3. 查看日志
+docker logs -f aviator-demo
+```
+
+应用启动后，访问：http://localhost:8080
+
+### 测试 API
 
 使用 curl 或 Postman 测试各个 API 接口。
 
@@ -329,6 +339,149 @@ aviator:
 ./gradlew test
 ```
 
+## 🐳 Docker 部署
+
+本项目支持多种方式打包成 Docker 镜像。
+
+### 方式一：Jib 插件（推荐 ⭐⭐⭐⭐⭐）
+
+**优势：** 构建速度快（~12秒）、镜像小（~106MB）、无需 Docker daemon
+
+#### 1. 构建到本地 Docker
+
+如果你已经安装并启动了 Docker：
+
+```bash
+./gradlew jibDockerBuild
+```
+
+这会创建镜像：`aviator-demo:latest` 和 `aviator-demo:0.0.1-SNAPSHOT`
+
+#### 2. 构建为 tar 文件（无需 Docker）
+
+如果没有 Docker，可以构建为 tar 文件：
+
+```bash
+./gradlew jibBuildTar
+```
+
+生成的 tar 文件位于：`build/jib-image.tar`
+
+加载到 Docker：
+
+```bash
+docker load < build/jib-image.tar
+```
+
+#### 3. 推送到 Docker Registry
+
+```bash
+# 推送到 Docker Hub
+./gradlew jib \
+  -Djib.to.image=your-username/aviator-demo:latest \
+  -Djib.to.auth.username=YOUR_USERNAME \
+  -Djib.to.auth.password=YOUR_PASSWORD
+
+# 推送到私有 Registry
+./gradlew jib \
+  -Djib.to.image=registry.example.com/aviator-demo:latest
+```
+
+### 方式二：传统 Dockerfile
+
+使用项目根目录的 `Dockerfile`：
+
+```bash
+# 构建镜像
+docker build -t aviator-demo:latest .
+
+# 不使用缓存
+docker build --no-cache -t aviator-demo:latest .
+```
+
+### 方式三：Spring Boot bootBuildImage
+
+需要 Docker daemon 运行：
+
+```bash
+# 确保 Docker 已启动
+open -a Docker  # macOS
+
+# 构建镜像
+./gradlew bootBuildImage --imageName=aviator-demo:latest
+```
+
+### 运行 Docker 容器
+
+```bash
+# 基本运行
+docker run -p 8080:8080 aviator-demo:latest
+
+# 后台运行（推荐）
+docker run -d -p 8080:8080 --name aviator-demo aviator-demo:latest
+
+# 带环境变量和资源限制
+docker run -d \
+  --name aviator-demo \
+  -p 8080:8080 \
+  -e SPRING_PROFILES_ACTIVE=prod \
+  -e JAVA_OPTS="-Xms512m -Xmx1024m" \
+  --memory="1g" \
+  --cpus="1.0" \
+  --restart=unless-stopped \
+  aviator-demo:latest
+
+# 查看日志
+docker logs -f aviator-demo
+
+# 停止和删除容器
+docker stop aviator-demo
+docker rm aviator-demo
+```
+
+### Docker Compose
+
+创建 `docker-compose.yml`：
+
+```yaml
+version: '3.8'
+
+services:
+  aviator-demo:
+    image: aviator-demo:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - JAVA_OPTS=-Xms256m -Xmx512m
+    restart: unless-stopped
+```
+
+使用 Docker Compose：
+
+```bash
+# 启动服务
+docker-compose up -d
+
+# 查看日志
+docker-compose logs -f
+
+# 停止服务
+docker-compose down
+```
+
+### 方案对比
+
+| 方案 | 构建时间 | 镜像大小 | 需要 Docker | 推荐度 |
+|-----|---------|---------|------------|--------|
+| **Jib** | ~12秒 | ~106MB | ❌ | ⭐⭐⭐⭐⭐ |
+| **Dockerfile** | ~2-3分钟 | ~180MB | ✅ | ⭐⭐⭐ |
+| **bootBuildImage** | ~1-2分钟 | ~250MB | ✅ | ⭐⭐⭐ |
+
+**推荐使用 Jib 方案**，构建速度最快，镜像最小，且不需要 Docker daemon。
+
+详细的 Docker 配置说明请参考 [DOCKER.md](./DOCKER.md)
+
 ## 📝 开发建议
 
 ### 1. 添加新的计算功能
@@ -403,6 +556,8 @@ curl "http://localhost:8080/api/formula/validate?expression=your_expression"
 - [Aviator 官方文档](https://github.com/killme2008/aviator)
 - [Spring Boot 官方文档](https://spring.io/projects/spring-boot)
 - [aviator-spring-boot-starter 项目](../aviator-spring-boot-starter)
+- [Jib 官方文档](https://github.com/GoogleContainerTools/jib)
+- [Docker 部署详细文档](./DOCKER.md)
 
 ## 📧 联系方式
 
